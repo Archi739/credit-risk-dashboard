@@ -60,7 +60,7 @@ features[7] = employment_days
 # =========================
 # BUTTON
 # =========================
-if st.sidebar.button("🚀 Generate Prediction"):
+if st.sidebar.button("Generate Prediction"):
 
     with st.spinner("Analyzing applicant profile..."):
         time.sleep(1)
