@@ -50,7 +50,6 @@ employment_days = st.sidebar.slider("Employment (days)", -10000, 0, -2000)
 # =========================
 features = [0.0] * len(feature_order)
 
-# Assign values (same indices as training)
 features[1] = income
 features[2] = credit
 features[3] = annuity
@@ -66,15 +65,15 @@ if st.sidebar.button("Generate Prediction"):
         time.sleep(1)
 
         try:
-            # Convert to numpy
             X = np.array(features).reshape(1, -1)
 
             # Prediction
             prob = model.predict_proba(X)[0][1]
 
-            # Score calculation
-            odds = (1 - prob) / (prob + 1e-6)
-            score = int(700 + 50 * np.log(odds))
+            # =========================
+            # ✅ FIXED CREDIT SCORE
+            # =========================
+            score = int(300 + (1 - prob) * 600)
 
             # Risk category
             if prob < 0.2:
