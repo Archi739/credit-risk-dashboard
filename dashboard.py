@@ -144,15 +144,25 @@ if st.sidebar.button("Generate Prediction"):
                 st.write(f"🎂 Age (days): {age_days}")
                 st.write(f"💼 Employment (days): {employment_days}")
 
-                st.subheader("🧠 Risk Insights")
+              st.subheader("🧠 Risk Insights")
 
-                if income < 100000:
-                    st.write("⚠️ Low income may increase risk")
-                if credit > 500000:
-                    st.write("⚠️ High loan amount increases risk")
-                if employment_days > -1000:
-                    st.write("⚠️ Short employment history")
+# Main model-based insight
+if risk_percent > 50:
+    st.error("⚠️ High default risk detected. Applicant is risky.")
+elif score < 600:
+    st.warning("⚠️ Low credit score indicates poor repayment capacity.")
+elif income > credit:
+    st.success("✅ Financial profile looks stable.")
+else:
+    st.warning("⚠️ Moderate risk. Further review needed.")
 
+# Additional supporting insights (optional but good)
+if income < 100000:
+    st.write("⚠️ Low income may increase risk")
+if credit > 500000:
+    st.write("⚠️ High loan amount increases risk")
+if employment_days > -1000:
+    st.write("⚠️ Short employment history")
             # ---------- CHARTS ----------
             with tab2:
 
