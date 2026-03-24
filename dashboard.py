@@ -145,17 +145,34 @@ if st.sidebar.button("Generate Prediction"):
                 st.write(f"💼 Employment (days): {employment_days}")
 
               st.subheader("🧠 Risk Insights")
+with tab1:
+    st.subheader("Applicant Summary")
 
-# Main model-based insight
-if risk_percent > 50:
-    st.error("⚠️ High default risk detected. Applicant is risky.")
-elif score < 600:
-    st.warning("⚠️ Low credit score indicates poor repayment capacity.")
-elif income > credit:
-    st.success("✅ Financial profile looks stable.")
-else:
-    st.warning("⚠️ Moderate risk. Further review needed.")
+    st.write(f"💰 Income: Rs. {income}")
+    st.write(f"🏦 Credit Amount: Rs. {credit}")
+    st.write(f"📉 Annuity: Rs. {annuity}")
+    st.write(f"🎂 Age: {abs(age_days)//365} years")
+    st.write(f"💼 Employment: {abs(employment_days)//365} years")
 
+    st.subheader("🧠 Risk Insights")
+
+    # Main model-based insight
+    if risk_percent > 50:
+        st.error("⚠️ High default risk detected. Applicant is risky.")
+    elif score < 600:
+        st.warning("⚠️ Low credit score indicates poor repayment capacity.")
+    elif income > credit:
+        st.success("✅ Financial profile looks stable.")
+    else:
+        st.warning("⚠️ Moderate risk. Further review needed.")
+
+    # Additional insights
+    if income < 100000:
+        st.write("⚠️ Low income may increase risk")
+    if credit > 500000:
+        st.write("⚠️ High loan amount increases risk")
+    if employment_days > -1000:
+        st.write("⚠️ Short employment history")
 # Additional supporting insights (optional but good)
 if income < 100000:
     st.write("⚠️ Low income may increase risk")
