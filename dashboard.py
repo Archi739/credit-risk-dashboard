@@ -1,4 +1,6 @@
+
 import streamlit as st
+st.write("NEW VERSION LOADED")
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
@@ -6,7 +8,7 @@ import joblib
 import time
 
 # =========================
-# CONFIG
+# PAGE CONFIG
 # =========================
 st.set_page_config(page_title="Credit Risk Dashboard", layout="wide")
 
@@ -15,6 +17,17 @@ st.set_page_config(page_title="Credit Risk Dashboard", layout="wide")
 # =========================
 model = joblib.load("credit_risk_xgb.pkl")
 feature_order = joblib.load("feature_order.pkl")
+
+# =========================
+# CUSTOM STYLE
+# =========================
+st.markdown("""
+<style>
+html, body, [class*="css"]  {
+    font-family: 'Times New Roman';
+}
+</style>
+""", unsafe_allow_html=True)
 
 # =========================
 # TITLE
@@ -35,29 +48,15 @@ age_days = st.sidebar.slider("Age (days)", -25000, -7000, -10000)
 employment_days = st.sidebar.slider("Employment (days)", -10000, 0, -2000)
 
 # =========================
-# CONVERT TO YEARS ✅ FIX
+# FEATURE VECTOR
 # =========================
-age_years = abs(age_days) // 365
-employment_years = abs(employment_days) // 365
+features = [0.0] * len(feature_order)
 
-# =========================
-# CREATE FEATURE VECTOR (SAFE WAY)
-# =========================
-data = {
-    "AMT_INCOME_TOTAL": income,
-    "AMT_CREDIT": credit,
-    "AMT_ANNUITY": annuity,
-    "DAYS_BIRTH": age_days,
-    "DAYS_EMPLOYED": employment_days,
-}
-
-X = np.zeros(len(feature_order))
-
-for i, col in enumerate(feature_order):
-    if col in data:
-        X[i] = data[col]
-
-X = X.reshape(1, -1)
+features[1] = income
+features[2] = credit
+features[3] = annuity
+features[6] = age_days
+features[7] = employment_days
 
 # =========================
 # BUTTON
@@ -68,12 +67,17 @@ if st.sidebar.button("Generate Prediction"):
         time.sleep(1)
 
         try:
+            X = np.array(features).reshape(1, -1)
+
+            # Prediction
             prob = model.predict_proba(X)[0][1]
 
-            # Score
+            # =========================
+            # ✅ FIXED CREDIT SCORE
+            # =========================
             score = int(300 + (1 - prob) * 600)
 
-            # Risk
+            # Risk category
             if prob < 0.2:
                 risk = "Low"
             elif prob < 0.5:
@@ -85,7 +89,7 @@ if st.sidebar.button("Generate Prediction"):
             safe_percent = (1 - prob) * 100
 
             # =========================
-            # METRICS
+            # KPI METRICS
             # =========================
             col1, col2, col3 = st.columns(3)
 
@@ -104,7 +108,7 @@ if st.sidebar.button("Generate Prediction"):
                 st.success("✅ Loan Approved")
 
             # =========================
-            # GAUGE
+            # GAUGE CHART
             # =========================
             st.subheader("📊 Risk Gauge")
 
@@ -114,6 +118,7 @@ if st.sidebar.button("Generate Prediction"):
                 title={'text': "Default Risk (%)"},
                 gauge={
                     'axis': {'range': [0, 100]},
+                    'bar': {'color': "red"},
                     'steps': [
                         {'range': [0, 30], 'color': "green"},
                         {'range': [30, 60], 'color': "yellow"},
@@ -136,30 +141,17 @@ if st.sidebar.button("Generate Prediction"):
                 st.write(f"💰 Income: Rs. {income}")
                 st.write(f"🏦 Credit Amount: Rs. {credit}")
                 st.write(f"📉 Annuity: Rs. {annuity}")
-                st.write(f"🎂 Age: {age_years} years")  # ✅ FIX
-                st.write(f"💼 Employment: {employment_years} years")  # ✅ FIX
+                st.write(f"🎂 Age (days): {age_days}")
+                st.write(f"💼 Employment (days): {employment_days}")
 
                 st.subheader("🧠 Risk Insights")
 
-                insights = []
-
                 if income < 100000:
-                    insights.append("Low income may increase risk")
-
-                if credit > income * 2:
-                    insights.append("High loan compared to income")
-
-                if employment_years < 3:
-                    insights.append("Short employment history")
-
-                if annuity > income * 0.3:
-                    insights.append("High EMI burden")
-
-                if not insights:
-                    insights.append("Financial profile looks stable")
-
-                for i in insights:
-                    st.write("⚠️", i)
+                    st.write("⚠️ Low income may increase risk")
+                if credit > 500000:
+                    st.write("⚠️ High loan amount increases risk")
+                if employment_days > -1000:
+                    st.write("⚠️ Short employment history")
 
             # ---------- CHARTS ----------
             with tab2:
@@ -169,8 +161,9 @@ if st.sidebar.button("Generate Prediction"):
                 with colA:
                     fig_bar = go.Figure(data=[
                         go.Bar(x=["Default Risk"], y=[risk_percent]),
-                        go.Bar(x=["Safe"], y=[safe_percent])
+                        go.Bar(x=["Safe Applicant"], y=[safe_percent])
                     ])
+                    fig_bar.update_layout(title="Default vs Safe Probability")
                     st.plotly_chart(fig_bar, use_container_width=True)
 
                 with colB:
@@ -178,6 +171,7 @@ if st.sidebar.button("Generate Prediction"):
                         labels=["Default Risk", "Safe"],
                         values=[risk_percent, safe_percent]
                     )])
+                    fig_pie.update_layout(title="Risk Distribution")
                     st.plotly_chart(fig_pie, use_container_width=True)
 
             # ---------- REPORT ----------
@@ -194,8 +188,7 @@ Income: Rs. {income}
 Credit Amount: Rs. {credit}
 Annuity: Rs. {annuity}
 
-Age: {age_years} years
-Employment: {employment_years} years
+Decision: {"Rejected" if risk=="High" else "Approved"}
 """
 
                 st.download_button(
