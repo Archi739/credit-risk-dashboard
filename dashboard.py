@@ -1,5 +1,5 @@
-st.write("NEW VERSION LOADED")
 import streamlit as st
+st.write("NEW VERSION LOADED")
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
